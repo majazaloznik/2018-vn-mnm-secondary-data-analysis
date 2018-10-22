@@ -1,0 +1,303 @@
+---
+title: "Vietnam & Myanmar---Ken's queries"
+author: maja
+date: "22.10.2018"
+tables: yes
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+    toc_depth: 3
+  word_document:
+    reference_docx: "../misc/style.docx"
+    toc: yes
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../docs/reports") })
+bibliography: ../docs/reports/bib.bib
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE, echo= FALSE}
+## this is to set up the main folder as the root
+## although this doesnot work for the YAML designations e.g. bibliography, css files etc..:(
+library(knitr)
+library(dplyr) 
+library(memisc)
+library(tidyr)
+
+# figure out which type of document i'm knitting to 
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+
+```
+
+```{r intro, echo = FALSE, warning = FALSE, message = FALSE}
+urb.rates <- readRDS(here::here("data/processed/urb.rates.rds"))
+rur.rates <- readRDS(here::here("data/processed/rur.rates.rds"))
+rur.growth <- readRDS(here::here("data/processed/rur.growth.rds"))
+prop.urb <- readRDS(here::here("data/processed/prop.urb.rds"))
+dep.ratios<- readRDS(here::here("data/processed/dep.ratios.rds"))
+mar.status<- readRDS(here::here("data/processed/mar.status.rds"))
+
+```  
+
+
+# Urbanization
+
+Using UN World Urbanization data @un2018world to compare urbanization trends in the two countries
+
+The data sources for Vietnam use the definition of places with 4,000 inhabitants or more as urban, while for Myanmar there is no official definition. 
+
+## Proportion Urban
+
+Annual proportions of the population residing in urban areas. 
+
+```{r prop.urb, fig.height = 3.8, fig.width = 7, echo = FALSE}
+par(mar = c(3, 4, 0, 0)+0.1)
+plot(prop.urb$year[prop.urb$country == "Myanmar"], 
+     prop.urb$prop.urb[prop.urb$country == "Myanmar"],
+     type = "n", lwd = 2, col = "orange1",
+     xlab = "", ylab = "Proportion urban", ylim = c(0, 70),
+     panel.first = grid(NA, NULL, col = "black"))
+
+mtext("Year", side = 1, line = 2)
+
+lines(prop.urb$year[prop.urb$country == "South-Eastern Asia"] + 2.5, 
+     prop.urb$prop.urb[prop.urb$country == "South-Eastern Asia"],
+     type = "l", lwd = 3, col = "gray85")
+
+lines(prop.urb$year[prop.urb$country == "Viet Nam"] + 2.5, 
+     prop.urb$prop.urb[prop.urb$country == "Viet Nam"],
+     type = "l", lwd = 2, col = "steelblue4")
+
+lines(prop.urb$year[prop.urb$country == "Myanmar"] + 2.5, 
+     prop.urb$prop.urb[prop.urb$country == "Myanmar"],
+     type = "l", lwd = 2, col = "orange1")
+
+abline(v = 2017.5, lty = 2, col = "black", lwd = 1.5)
+text("Projection", x = 2025, y =  68, cex = 0.8)
+text("Estimate", x = 2010, y =  68, cex = 0.8)
+legend(2030, 20, c("Vietnam", "Myanmar", "SE Asia"), 
+       col = c("steelblue4", "orange1", "gray85"), y.intersp = 1.3,
+       pch = c(NA, NA, NA), lwd = c(2,2,3), bty = "n", cex = 0.8)
+```
+
+## Urbanization rate
+
+The urbanization rate is the average annual rate of change of the percentage of urban population in the country (or region). (This is not the rate of growth of the absolute size of the urban population!)
+
+
+```{r urb.rate, fig.height = 3.8, fig.width = 7, echo = FALSE}
+par(mar = c(3, 4, 0, 0)+0.1)
+plot(urb.rates$start[urb.rates$country == "Myanmar"] + 2.5, 
+     urb.rates$urb.rate[urb.rates$country == "Myanmar"],
+     type = "n", lwd = 2, col = "orange1",
+     xlab = "", ylab = "urbanization rate", ylim = c(0, 3),
+     panel.first = grid(NA, NULL, col = "black"))
+
+mtext("Year", side = 1, line = 2)
+
+
+lines(urb.rates$start[urb.rates$country == "South-Eastern Asia"] + 2.5, 
+     urb.rates$urb.rate[urb.rates$country == "South-Eastern Asia"],
+     type = "l", lwd = 3, col = "gray85")
+
+lines(urb.rates$start[urb.rates$country == "Viet Nam"] + 2.5, 
+     urb.rates$urb.rate[urb.rates$country == "Viet Nam"],
+     type = "b", lwd = 2, col = "steelblue4")
+
+lines(urb.rates$start[urb.rates$country == "Myanmar"] + 2.5, 
+     urb.rates$urb.rate[urb.rates$country == "Myanmar"],
+     type = "b", lwd = 2, col = "orange1")
+
+abline(v = 2017.5, lty = 2, col = "black", lwd = 1.5)
+text("Projection", x = 2025, y =  2.9, cex = 0.8)
+text("Estimate", x = 2010, y =  2.9, cex = 0.8)
+legend(2030, 2.8, c("Vietnam", "Myanmar", "SE Asia"), 
+       col = c("steelblue4", "orange1", "gray85"), y.intersp = 1.3,
+       pch = c(1, 1, NA), lwd = c(2,2,3), bty = "n", cex = 0.8)
+
+```
+
+## Rate of rural proportion change
+
+The rate of rural population change is the average annual rate of change of the percentage of rural population in the country (or region), expressed in percent. (This is not the rate of growth (or rather decline) of the absolute number of rural population!)
+
+```{r rur.rate, fig.height = 3.8, fig.width = 7, echo = FALSE}
+par(mar = c(3, 4, 0, 0)+0.1)
+plot(rur.rates$start[rur.rates$country == "Myanmar"] + 2.5, 
+     rur.rates$rur.rate[rur.rates$country == "Myanmar"],
+     type = "n", 
+     xlab = "", ylab = "Rate of change of rural proportion", ylim = c( -1.5, 0),
+     panel.first = grid(NA, NULL, col = "black"))
+mtext("Year", side = 1, line = 2)
+
+lines(rur.rates$start[rur.rates$country == "South-Eastern Asia"] + 2.5, 
+     rur.rates$rur.rate[rur.rates$country == "South-Eastern Asia"],
+     type = "l", lwd = 3, col = "gray85")
+
+lines(rur.rates$start[rur.rates$country == "Viet Nam"] + 2.5, 
+     rur.rates$rur.rate[rur.rates$country == "Viet Nam"],
+     type = "b", lwd = 2, col = "steelblue4")
+
+lines(rur.rates$start[rur.rates$country == "Myanmar"] + 2.5, 
+     rur.rates$rur.rate[rur.rates$country == "Myanmar"],
+     type = "b", lwd = 2, col = "orange1")
+
+abline(v = 2017.5, lty = 2, col = "black", lwd = 1.5)
+text("Projection", x = 2025, y =  -0.1, cex = 0.8)
+text("Estimate", x = 2010, y =  -0.1, cex = 0.8)
+legend(2030, -0.15, c("Vietnam", "Myanmar", "SE Asia"), 
+       col = c("steelblue4", "orange1", "gray85"), y.intersp = 1.3,
+       pch = c(1, 1, NA), lwd = c(2,2,3), bty = "n", cex = 0.8)
+
+```
+
+## Rate of rural population change
+
+The change of rural population change is the average annual rate of change of the rural population in the country (or region), expressed in percent. 
+
+So positive values here mean the rural population is still growing in absolute terms, although it might be--- and almost invariably is---declining in relative terms. 
+
+```{r rur.growth, fig.height = 3.8, fig.width = 7, echo = FALSE}
+par(mar = c(3, 4, 0, 0)+0.1)
+plot(rur.growth$start[rur.growth$country == "Myanmar"] + 2.5, 
+     rur.growth$rur.growth[rur.growth$country == "Myanmar"],
+     type = "n", 
+     xlab = "", ylab = "Rate of change of rural population", ylim = c( -1.5, 2.8),
+     panel.first = grid(NA, NULL, lwd = 1.5))
+mtext("Year", side = 1, line = 2)
+lines(rur.growth$start[rur.growth$country == "South-Eastern Asia"] + 2.5, 
+     rur.growth$rur.growth[rur.growth$country == "South-Eastern Asia"],
+     type = "l", lwd = 3, col = "gray85")
+
+lines(rur.growth$start[rur.growth$country == "Viet Nam"] + 2.5, 
+     rur.growth$rur.growth[rur.growth$country == "Viet Nam"],
+     type = "b", lwd = 2, col = "steelblue4")
+
+lines(rur.growth$start[rur.growth$country == "Myanmar"] + 2.5, 
+     rur.growth$rur.growth[rur.growth$country == "Myanmar"],
+     type = "b", lwd = 2, col = "orange1")
+
+abline(v = 2017.5, lty = 2, col = "black", lwd = 1.5)
+abline(h = 0, lty = 1, col = "black")
+text("Projection", x = 2025, y =  2.6, cex = 0.8)
+text("Estimate", x = 2010, y =  2.6, cex = 0.8)
+legend(2030, 2.5, c("Vietnam", "Myanmar", "SE Asia"), 
+       col = c("steelblue4", "orange1", "gray85"), y.intersp = 1.3,
+       pch = c(1, 1, NA), lwd = c(2,2,3), bty = "n", cex = 0.8)
+
+```
+
+# Dependency ratios - Vietnam
+
+Using the IPUMS International samples of the Vietnamese censuses (@ipums2018) we can look at the dependency ratios in urban and rural areas over the three censuses 1989, 1999 and 2009. 
+
+The youth dependency ratios--the ones drawn with solid lines--do look like they have been steadily converging over the 20 years covered by the censuses and could well have crossed over already i.e. that the youth dependency rate in rural areas is higher than the youth dependency rate in urban areas.[^1]
+
+[^1]: I am using standard measures here of under 15, 15-64 and 65 and over to define the three age groups. 
+```{r echo = FALSE, results = "asis"}
+dep.ratios %>% 
+  group_by(year, urban) %>% 
+  spread(key = youth, value = n) %>% 
+  mutate(youth.ratio = 100*`0`/ `1`,
+         old.ratio = 100*`2`/`1`, 
+         total.ratio = 100*(`0`+`2`)/`1`) %>% 
+  ungroup() %>% 
+  mutate(year = as.numeric(as.character(year))) -> x
+
+ x %>% 
+   dplyr::select(year, urban, ends_with("ratio")) %>% 
+   dplyr::rename( area_type = urban) %>% 
+   mutate(area_type = ifelse(area_type == 1, "rural", "urban")) -> x.tab
+
+ knitr::kable(x.tab, output = "latex", digits = 2)
+rural <- "darkolivegreen4"
+urban <- "palevioletred3"
+
+par(xpd = TRUE)
+plot(x$year[x$urban == 1], x$youth.ratio[x$urban == 1], 
+     type = "b", lwd = 2, ylim = c(0, 90), col = urban,
+     ylab = "dependency ratio", xlab= "year", axes = FALSE)
+axis(2, las = 2)
+axis(1, at = c(1989, 1999, 2009), labels = c(1989, 1999, 2009))
+lines(x$year[x$urban == 2], x$youth.ratio[x$urban == 2], 
+     type = "b", lwd = 2, lty = 1, col = rural)
+
+lines(x$year[x$urban == 1], x$old.ratio[x$urban == 1], 
+     type = "b", lwd = 2,  col = urban, lty = 2)
+lines(x$year[x$urban == 2], x$old.ratio[x$urban == 2], 
+      type = "b", lwd = 2, lty = 2, col = rural)
+
+lines(x$year[x$urban == 1], x$total.ratio[x$urban == 1], 
+      type = "b", lwd = 2,  col = urban, lty = 3)
+lines(x$year[x$urban == 2], x$total.ratio[x$urban == 2], 
+      type = "b", lwd = 2, lty = 3, col = rural)
+
+  legend(2002, 0.95, legend = c("urban total dep. ratio",
+                    "rural total dep. ratio",
+                    "urban youth dep. ratio",
+                    "rural youth dep. ratio",
+                    "urban old dep. ratio",
+                    "rural old dep.ratio"),
+       col = rep(c("palevioletred3", "darkolivegreen4"),3), 
+       lwd = 2, lty = c(3,3,1,1,2,2), bty = "n", cex = 0.6)
+
+
+
+```
+
+# Marital status - Vietnam
+
+Using the IPUMS International samples of the Vietnamese censuses (@ipums2018) we can look at the marital status of men and women (aged 16 or over) in urban and rural areas over the three censuses 1989, 1999 and 2009. 
+
+Marital status patterns look very stable over the 20 year period. Slightly higher marriage rates in rural areas compared to urban, and slightly higher widowhood rates for rural women compared to urban women. Rates of separation and divorce, which also include the category  "spouse absent" are under one percent for men and around two percent for women, and tend to be higher in urban areas. 
+
+
+```{r echo = FALSE, results = "asis"}
+
+mar.status %>% 
+  ungroup() %>% 
+  dplyr::rename(area_type = urban) %>%
+  mutate(area_type = ifelse(area_type == 1, "rural", "urban")) %>% 
+  mutate(sex = ifelse(sex == 1, "male", "female")) %>% 
+  unite(temp, area_type, sex) %>% 
+  spread(key = temp, value = n) %>% 
+  group_by(year) %>% 
+  mutate(marstd = as.numeric(levels(marstd))[marstd]) %>% 
+  mutate(marstd = ifelse(marstd == 1, "single/never married",
+                         ifelse(marstd == 2, "married",
+                                ifelse(marstd == 3, "separated, divorced",
+                                       ifelse(marstd == 4, "widowed", "unknown"))))) -> ms.pretty
+  
+ms.pretty %>% 
+  summarise_at(2:5, sum) %>% 
+  gather(key = group, value = n, 2:5) %>% 
+  unite(group, year, into = "group", sep = "_") %>% 
+  arrange(group) %>% 
+  pull(n) -> ms.widths
+
+ms.pretty %>% 
+  mutate_at(2:5, funs(./sum(.))) %>% 
+  gather(key = group, value = n, 3:6) %>% 
+  unite(group, year, into = "group", sep = "_") %>% 
+  spread(key = group, value = n) %>% 
+  arrange(factor(marstd, levels = c("married", "separated, divorced", 
+                                    "single/never married", "widowed", "unknown"))) %>% 
+  dplyr::select(-marstd) %>% 
+  as.matrix() -> ms.plot
+
+par(mar = c(3, 9, 1,1))
+barplot(ms.plot, axes = FALSE, 
+        horiz = TRUE, las = 2, width = ms.widths,
+        space = rep(c(.7, .1,.1,.1), 3),
+        col = c("paleturquoise4","darkorchid4", "goldenrod2", "gray30", "gray90"))
+
+legend(x = -0.3, y = 7000000, ncol = 3, legend = c("married", "separated, divorced", 
+                                      "single/never married", "widowed", "unknown"),
+       fill =  c("paleturquoise4","darkorchid4", "goldenrod2", "gray30", "gray90"),
+       xpd = TRUE)
+
+```
+
+# References

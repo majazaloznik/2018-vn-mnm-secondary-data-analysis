@@ -96,11 +96,11 @@ endef
 # DEPENDENCIES   ##############################################################
 ###############################################################################
 
-all: journal readme dot analysis
+all: journal  dot reports
 
 .PHONY: all
 
-analysis: $(DT/R)/urbanization.rates.csv
+reports: $(RPRT)/urbanization_et_al.pdf
 
 # make chart from .dot #########################################################
 dot: $(FIG)/make.png
@@ -126,12 +126,23 @@ $(JRN)/journal.html:  $(JRN)/journal.Rmd
 	$(rmd2html)
 
 
-# README from Rmds #############################################################
-readme: README.html
 
-README.html: README.md 
-	$(rmd2html)
 
+# report from Rmd file #########################################################
+$(RPRT)/urbanization_et_al.pdf:  $(CODE)/r01-urbanization_et_al.Rmd 
+	$(rmd2pdf)
+
+# data imported into report	
+$(CODE)/r01-urbanization_et_al.Rmd: $(DT/P)/urb.rates.rds
+	touch $@
+	
+# import and clean data
+$(DT/P)/urb.rates.rds: $(CODE)/01-import.R
+	Rscript -e "source('$<')"
+
+# required for data import and clean 
+$(CODE)/01-import.R: $(DT/R)/urbanization.rates.xls
+	touch $@
 	
 # download data on urbanization rates
 $(DT/R)/urbanization.rates.xls:
